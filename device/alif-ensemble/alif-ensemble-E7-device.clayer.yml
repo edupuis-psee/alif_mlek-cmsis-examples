@@ -78,13 +78,19 @@ layer:
     - component: AlifSemiconductor::Device:SOC Peripherals:DMA
       for-context: +Alif-E7-M55-HE
 
+    - component: AlifSemiconductor::Device:SOC Peripherals:DMA
+      for-context: +Alif-E7-M55-HP
+
     - component: AlifSemiconductor::Device:SOC Peripherals:I2S
       for-context: +Alif-E7-M55-HE
+
+    - component: AlifSemiconductor::Device:SOC Peripherals:I2C
+      for-context: +Alif-E7-M55-HP
 
     - component: AlifSemiconductor::Device:SOC Peripherals:I3C
       for-context: +Alif-E7-M55-HP
 
-    - component: AlifSemiconductor::Device:SOC Peripherals:CDC200
+    - component: AlifSemiconductor::Device:SOC Peripherals:CDC
       for-context: +Alif-E7-M55-HP
 
     - component: AlifSemiconductor::Device:SOC Peripherals:MIPI CSI2
@@ -93,7 +99,7 @@ layer:
     - component: AlifSemiconductor::Device:SOC Peripherals:MIPI DSI
       for-context: +Alif-E7-M55-HP
 
-    - component: AlifSemiconductor::Device:SOC Peripherals:CAMERA Controller
+    - component: AlifSemiconductor::Device:SOC Peripherals:CPI
       for-context: +Alif-E7-M55-HP
 
     - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel

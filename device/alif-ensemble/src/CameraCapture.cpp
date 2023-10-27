@@ -35,15 +35,15 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include "Driver_CPI.h"
 #include "RTE_Components.h"
 #include CMSIS_device_header
-#include "Driver_Camera_Controller.h"
 #include "Driver_Common.h"
 #include "Driver_GPIO.h"
 #include "log_macros.h"
 
 extern ARM_DRIVER_GPIO Driver_GPIO1;
-extern ARM_DRIVER_CAMERA_CONTROLLER Driver_CAMERA0;
+extern ARM_DRIVER_CPI Driver_CPI;
 
 static struct arm_camera_status {
     bool frame_complete: 1;
@@ -52,19 +52,19 @@ static struct arm_camera_status {
 
 static void camera_event_cb(uint32_t event)
 {
-    if(event & ARM_CAMERA_CONTROLLER_EVENT_CAMERA_FRAME_VSYNC_DETECTED) {
+    if(event & ARM_CPI_EVENT_CAMERA_CAPTURE_STOPPED) {
         camera_status.frame_complete = true;
     }
 
-    if(event & ARM_CAMERA_CONTROLLER_EVENT_ERR_CAMERA_FIFO_OVERRUN) {
+    if(event & ARM_CPI_EVENT_ERR_CAMERA_INPUT_FIFO_OVERRUN) {
         camera_status.camera_error = true;
     }
 
-    if(event & ARM_CAMERA_CONTROLLER_EVENT_ERR_CAMERA_FIFO_UNDERRUN) {
+    if(event & ARM_CPI_EVENT_ERR_CAMERA_OUTPUT_FIFO_OVERRUN) {
         camera_status.camera_error = true;
     }
 
-    if(event & ARM_CAMERA_CONTROLLER_EVENT_MIPI_CSI2_ERROR) {
+    if(event & ARM_CPI_EVENT_MIPI_CSI2_ERROR) {
         camera_status.camera_error = true;
     }
 }
@@ -77,38 +77,52 @@ __attribute__((noreturn)) static void CameraErrorLoop(const char* errorStr)
 {
     printf_err("%s\n", errorStr);
     while(true) {
-        Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_LOW);
-        PMU_delay_loop_us(300000);
-        Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_HIGH);
-        PMU_delay_loop_us(300000);
+        // Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_LOW);
+        // PMU_delay_loop_us(300000);
+        // Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_HIGH);
+        // PMU_delay_loop_us(300000);
     }
 }
 
 int arm::app::CameraCaptureInit(ARM_CAMERA_RESOLUTION resolution)
 {
-    if (0 != Driver_CAMERA0.Initialize(resolution, camera_event_cb)) {
+    if (0 != Driver_CPI.Initialize(camera_event_cb)) {
         CameraErrorLoop("Camera initialisation failed.\n");
     }
 
-    if (0 != Driver_CAMERA0.PowerControl(ARM_POWER_FULL)) {
+    if (0 != Driver_CPI.PowerControl(ARM_POWER_FULL)) {
         CameraErrorLoop("Camera power up failed.\n");
     }
 
-    if (0 != Driver_CAMERA0.Control(CAMERA_SENSOR_CONFIGURE, resolution)) {
+    if (0 != Driver_CPI.Control(CPI_CAMERA_SENSOR_CONFIGURE, resolution)) {
         CameraErrorLoop("Camera configuration failed.\n");
     }
 
+#ifdef CPI_CONFIGURE
+    if (0 != Driver_CPI.Control(CPI_CONFIGURE, 0)) {
+        CameraErrorLoop("Camera CPI_CONFIGURE failed.\n");
+    }
+#endif
+
+    if (0 != Driver_CPI.Control(CPI_EVENTS_CONFIGURE, ARM_CPI_EVENT_CAMERA_CAPTURE_STOPPED |
+                                                    ARM_CPI_EVENT_ERR_CAMERA_INPUT_FIFO_OVERRUN |
+                                                    ARM_CPI_EVENT_ERR_CAMERA_OUTPUT_FIFO_OVERRUN |
+                                                    ARM_CPI_EVENT_ERR_HARDWARE |
+                                                    ARM_CPI_EVENT_MIPI_CSI2_ERROR)) {
+        CameraErrorLoop("Camera CPI_EVENTS_CONFIGURE failed.\n");
+    }
+
     info("Camera initialised.\n");
-    Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_HIGH);
+    //Driver_GPIO1.SetValue(PIN_NUMBER_14, GPIO_PIN_OUTPUT_STATE_HIGH);
     return 0;
 }
 
 static inline void CameraStatusReset()
 {
-    NVIC_DisableIRQ((IRQn_Type) CAMERA0_IRQ);
+    NVIC_DisableIRQ((IRQn_Type) CAM_IRQ_IRQn);
     camera_status.frame_complete = false;
     camera_status.camera_error = false;
-    NVIC_EnableIRQ((IRQn_Type) CAMERA0_IRQ);
+    NVIC_EnableIRQ((IRQn_Type) CAM_IRQ_IRQn);
 }
 
 int arm::app::CameraCaptureStart(uint8_t* rawImage)
@@ -117,7 +131,7 @@ int arm::app::CameraCaptureStart(uint8_t* rawImage)
 
     /* NOTE: This is a blocking call at the moment; doesn't need to be.
      *       It slows down the whole pipeline considerably. */
-    Driver_CAMERA0.CaptureFrame(rawImage);
+    Driver_CPI.CaptureFrame(rawImage);
     return 0;
 }
 
