@@ -26,10 +26,12 @@ layer:
       files:
         - file: ./src/GpioSignal.cpp
         - file: ./include/GpioSignal.hpp
-        - file: ./src/gpio.c
+        - file: ./src/gpio_wrapper.c
 
     - group: AudioHelpers
       for-context: +Alif-E7-M55-HE
+      add-path:
+        - ./Board
       files:
         - file: ./src/BoardAudioUtils.cpp
         - file: ./src/BoardPlotUtils.cpp
@@ -53,9 +55,12 @@ layer:
         - file: ./src/uart_stdout.h
 
     - group: Init
+      add-path:
+        - ./Board
       files:
         - file: ./include/BoardInit.hpp
         - file: ./src/BoardInit.cpp
+        - file: ./Board/devkit_gen2/board_init.c
 
   components:
     - component: Arm::Machine Learning:NPU Support:Ethos-U Driver&Generic U55
@@ -67,8 +72,8 @@ layer:
     - component: AlifSemiconductor::Device:Startup
     - component: ARM::CMSIS Driver:USART
     - component: ARM::CMSIS Driver:USART:Custom
-    - component: AlifSemiconductor::Device:SE Services:SE RunTime services&Source
-    - component: AlifSemiconductor::Device:SE Services:MHU Driver
+#    - component: AlifSemiconductor::Device:SE Services:SE RunTime services&Source
+#    - component: AlifSemiconductor::Device:SE Services:MHU Driver
 
     - component: AlifSemiconductor::Device:SOC Peripherals:DMA
       for-context: +Alif-E7-M55-HE

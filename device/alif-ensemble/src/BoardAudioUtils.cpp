@@ -26,13 +26,12 @@ extern "C" {
 
 #include "RTE_Components.h"
 #include "RTE_Device.h"
-#include <Driver_PINMUX_AND_PINPAD.h>
 #include <Driver_SAI.h>
 #include CMSIS_device_header
-
+#include "board.h"
 #include <stdio.h>
 
-#define I2S_ADC       2 /* Audio I2S Controller 2 */
+#define I2S_ADC       BOARD_I2S_INSTANCE
 extern ARM_DRIVER_SAI ARM_Driver_SAI_(I2S_ADC);
 ARM_DRIVER_SAI*       s_i2s_drv;
 
@@ -45,9 +44,9 @@ static volatile audio_capture_state s_cap_state;
 
 static void set_capture_completed(bool val)
 {
-    NVIC_DisableIRQ((IRQn_Type)I2S2_IRQ);
+    NVIC_DisableIRQ((IRQn_Type)I2S2_IRQ_IRQn);
     s_cap_state.capCompleted = val;
-    NVIC_EnableIRQ((IRQn_Type)I2S2_IRQ);
+    NVIC_EnableIRQ((IRQn_Type)I2S2_IRQ_IRQn);
 }
 
 static void set_capture_started(bool val)
@@ -73,28 +72,6 @@ static audio_buf* s_stereoBufferDMA     = NULL;
 }
 #endif /* C */
 
-static int32_t ConfigureI2SPinMuxPinPad()
-{
-    int32_t status = 0;
-
-    // Configure P2_1.I2S2_SDI_A
-    status |= PINMUX_Config(PORT_NUMBER_2, PIN_NUMBER_1, PINMUX_ALTERNATE_FUNCTION_3);
-    status |=
-        PINPAD_Config(PORT_NUMBER_2,
-                      PIN_NUMBER_1,
-                      PAD_FUNCTION_DRIVER_DISABLE_STATE_WITH_PULL_DOWN | PAD_FUNCTION_READ_ENABLE);
-
-    /* Configure P2_3.I2S2_SCLK_A */
-    status |= PINMUX_Config(PORT_NUMBER_2, PIN_NUMBER_3, PINMUX_ALTERNATE_FUNCTION_3);
-    status |= PINPAD_Config(PORT_NUMBER_2, PIN_NUMBER_3, PAD_FUNCTION_READ_ENABLE);
-
-    /* Configure P2_3.I2S2_WS_A */
-    status |= PINMUX_Config(PORT_NUMBER_2, PIN_NUMBER_4, PINMUX_ALTERNATE_FUNCTION_2);
-    status |= PINPAD_Config(PORT_NUMBER_2, PIN_NUMBER_4, PAD_FUNCTION_READ_ENABLE);
-
-    return status;
-}
-
 static bool InitializeI2SDriver(void)
 {
     int32_t status = 0;
@@ -103,13 +80,6 @@ static bool InitializeI2SDriver(void)
 
     set_capture_completed(false);
     set_capture_started(false);
-
-    /* Configure pins to their I2S related functions */
-    status = ConfigureI2SPinMuxPinPad();
-    if (status) {
-        printf("I2S pinmux configuration failed\n");
-        return false;
-    }
 
     /* Use the I2S as Receiver */
     s_i2s_drv = &ARM_Driver_SAI_(I2S_ADC);

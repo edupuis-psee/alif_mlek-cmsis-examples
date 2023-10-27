@@ -25,10 +25,10 @@ extern "C" {
 #include "RTE_Components.h"
 #include "RTE_Device.h"
 #include CMSIS_device_header
-#include "Driver_PINMUX_AND_PINPAD.h"
 #include "Driver_Common.h"
 #include "ethosu_driver.h"
 #include "uart_stdout.h"
+#include "board.h"
 #include <stdio.h>
 
 static struct ethosu_driver npuDriver;
@@ -44,8 +44,7 @@ static void npu_irq_handler(void)
 bool NpuInit()
 {
     /* Base address is 0x4000E1000; interrupt number is 55. */
-    constexpr uint32_t npuBaseOffset = 0xE1000;
-    const void *npuBaseAddr = reinterpret_cast<void*>(LOCAL_PERIPHERAL_BASE + npuBaseOffset);
+    const void *npuBaseAddr = reinterpret_cast<void*>(LOCAL_NPU_BASE);
 
     /*  Initialize Ethos-U NPU driver. */
     if (ethosu_init(&npuDriver, /* Arm Ethos-U device driver pointer  */
@@ -58,8 +57,8 @@ bool NpuInit()
         return false;
     }
 
-    NVIC_SetVector(NPU_IRQ, (uint32_t) &npu_irq_handler);
-    NVIC_EnableIRQ(NPU_IRQ);
+    NVIC_SetVector(LOCAL_NPU_IRQ_IRQn, (uint32_t) &npu_irq_handler);
+    NVIC_EnableIRQ(LOCAL_NPU_IRQ_IRQn);
 
     return true;
 }
@@ -145,21 +144,11 @@ static int CameraPinsInit(void)
 
 void BoardInit(void)
 {
+    BOARD_Pinmux_Init();
+
 #if !defined(SEMIHOSTING)
     UartStdOutInit();
 #endif /* defined(SEMIHOSTING) */
-
-#if defined (M55_HP)
-    /* Initialise the I3C and camera pins for the High performance core. */
-    if (ARM_DRIVER_OK != I3CPinsInit()) {
-        printf("I3CPinsInit failed\n");
-        return;
-    }
-    if (ARM_DRIVER_OK != CameraPinsInit()) {
-        printf("CameraPinsInit failed\n");
-        return;
-    }
-#endif /* defined (M55_HP) */
 
 #if defined(ETHOSU_ARCH) && (ETHOSU_ARCH==u55)
     if (!NpuInit()) {

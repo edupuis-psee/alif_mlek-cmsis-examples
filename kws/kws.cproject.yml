@@ -120,3 +120,5 @@ project:
 
   components:
     - component: ARM::ML Eval Kit:Voice:Keyword spotting
+  packs:
+    - pack: ARM::ml-embedded-eval-kit-uc-api@22.8.0-Beta

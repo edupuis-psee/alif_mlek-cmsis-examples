@@ -40,7 +40,6 @@ extern "C" {
 #include "Driver_Camera_Controller.h"
 #include "Driver_Common.h"
 #include "Driver_GPIO.h"
-#include "Driver_PINMUX_AND_PINPAD.h"
 #include "log_macros.h"
 
 extern ARM_DRIVER_GPIO Driver_GPIO1;
