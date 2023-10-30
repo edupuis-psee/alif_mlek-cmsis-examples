@@ -32,6 +32,10 @@ extern "C" {
 #include <stdio.h>
 
 #define I2S_ADC       BOARD_I2S_INSTANCE
+
+#define _I2S_IRQ(n)      I2S##n##_IRQ_IRQn
+#define  I2S_IRQ(n)     _I2S_IRQ(n)
+
 extern ARM_DRIVER_SAI ARM_Driver_SAI_(I2S_ADC);
 ARM_DRIVER_SAI*       s_i2s_drv;
 
@@ -44,9 +48,9 @@ static volatile audio_capture_state s_cap_state;
 
 static void set_capture_completed(bool val)
 {
-    NVIC_DisableIRQ((IRQn_Type)I2S2_IRQ_IRQn);
+    NVIC_DisableIRQ((IRQn_Type)I2S_IRQ(I2S_ADC));
     s_cap_state.capCompleted = val;
-    NVIC_EnableIRQ((IRQn_Type)I2S2_IRQ_IRQn);
+    NVIC_EnableIRQ((IRQn_Type)I2S_IRQ(I2S_ADC));
 }
 
 static void set_capture_started(bool val)
