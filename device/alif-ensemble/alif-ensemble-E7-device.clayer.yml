@@ -19,6 +19,9 @@
 layer:
   description: Alif Ensemble E7 ML islands' CPU device layer (High-Performance and High-Efficiency Arm Cortex-M55 CPUs).
 
+  add-path:
+    - ./Board
+
   groups:
     - group: GPIO
       add-path:
@@ -30,8 +33,6 @@ layer:
 
     - group: AudioHelpers
       for-context: +Alif-E7-M55-HE
-      add-path:
-        - ./Board
       files:
         - file: ./src/BoardAudioUtils.cpp
         - file: ./src/BoardPlotUtils.cpp
@@ -55,8 +56,6 @@ layer:
         - file: ./src/uart_stdout.h
 
     - group: Init
-      add-path:
-        - ./Board
       files:
         - file: ./include/BoardInit.hpp
         - file: ./src/BoardInit.cpp

@@ -84,7 +84,7 @@ __attribute__((noreturn)) static void CameraErrorLoop(const char* errorStr)
     }
 }
 
-int arm::app::CameraCaptureInit(ARM_CAMERA_RESOLUTION resolution)
+int arm::app::CameraCaptureInit()
 {
     if (0 != Driver_CPI.Initialize(camera_event_cb)) {
         CameraErrorLoop("Camera initialisation failed.\n");
@@ -94,7 +94,7 @@ int arm::app::CameraCaptureInit(ARM_CAMERA_RESOLUTION resolution)
         CameraErrorLoop("Camera power up failed.\n");
     }
 
-    if (0 != Driver_CPI.Control(CPI_CAMERA_SENSOR_CONFIGURE, resolution)) {
+    if (0 != Driver_CPI.Control(CPI_CAMERA_SENSOR_CONFIGURE, 0)) {
         CameraErrorLoop("Camera configuration failed.\n");
     }
 

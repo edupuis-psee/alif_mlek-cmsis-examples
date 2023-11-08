@@ -53,7 +53,7 @@
 //     <2=> E50RA_MW550
 // <i> Defines ILI9806E panel variant
 // <i> Default: E43RB_FW405
-#define BOARD_ILI9806E_PANEL_VARIANT    0
+#define BOARD_ILI9806E_PANEL_VARIANT    1
 
 void BOARD_Pinmux_Init();
 void BOARD_Clock_Init();

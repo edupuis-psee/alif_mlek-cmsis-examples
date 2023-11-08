@@ -81,6 +81,11 @@ void BoardInit(void)
 {
     BOARD_Pinmux_Init();
 
+    enable_cgu_clk38p4m();
+    enable_cgu_clk160m();
+    enable_cgu_clk100m();
+    enable_cgu_clk20m();
+
 #if !defined(SEMIHOSTING)
     UartStdOutInit();
 #endif /* defined(SEMIHOSTING) */

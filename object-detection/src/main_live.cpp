@@ -137,7 +137,7 @@ int main()
     const size_t imgSz = inputTensor->bytes < CROPPED_IMAGE_SIZE ?
                          inputTensor->bytes : CROPPED_IMAGE_SIZE;
 
-    if (0 != arm::app::CameraCaptureInit(CAMERA_RESOLUTION)) {
+    if (0 != arm::app::CameraCaptureInit()) {
         printf_err("Failed to initalise camera\n");
         return 2;
     }
