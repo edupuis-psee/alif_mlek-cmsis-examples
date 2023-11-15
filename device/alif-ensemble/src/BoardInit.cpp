@@ -29,6 +29,7 @@ extern "C" {
 #include "ethosu_driver.h"
 #include "uart_stdout.h"
 #include "board.h"
+#include "power.h"
 #include <stdio.h>
 
 static struct ethosu_driver npuDriver;
@@ -81,10 +82,15 @@ void BoardInit(void)
 {
     BOARD_Pinmux_Init();
 
+    /* Enable peripheral clocks */
     enable_cgu_clk38p4m();
     enable_cgu_clk160m();
     enable_cgu_clk100m();
     enable_cgu_clk20m();
+
+    /* Enable MIPI power */
+    enable_mipi_dphy_power();
+    disable_mipi_dphy_isolation();
 
 #if !defined(SEMIHOSTING)
     UartStdOutInit();
