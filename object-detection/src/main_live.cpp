@@ -167,6 +167,7 @@ int main()
         results.clear();
 
         arm::app::CameraCaptureWaitForFrame();
+        RTSS_InvalidateDCache_by_Addr(arm::app::rawImage, sizeof(arm::app::rawImage));
 
         auto debayerState = arm::app::CropAndDebayer(
                                 arm::app::rawImage,
@@ -177,7 +178,7 @@ int main()
                                 arm::app::rgbImage,
                                 inputImgCols,
                                 inputImgRows,
-                                arm::app::ColourFilter::BGGR);
+                                arm::app::ColourFilter::GRBG);
 
         if (!debayerState) {
             printf_err("Debayering failed\n");
@@ -215,7 +216,7 @@ int main()
         arm::app::LcdDisplayImage(arm::app::rgbImage,
                          inputImgCols,
                          inputImgRows,
-                         arm::app::ColourFormat::RGB,
+                         arm::app::ColourFormat::BGR,
                          (DIMAGE_X - inputImgCols)/2,
                          (DIMAGE_Y - inputImgRows)/2);
     }
