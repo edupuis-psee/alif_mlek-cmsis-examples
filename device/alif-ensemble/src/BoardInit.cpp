@@ -45,7 +45,7 @@ static void npu_irq_handler(void)
 bool NpuInit()
 {
     /* Base address is 0x4000E1000; interrupt number is 55. */
-    const void *npuBaseAddr = reinterpret_cast<void*>(LOCAL_NPU_BASE);
+    void* const npuBaseAddr = reinterpret_cast<void*>(LOCAL_NPU_BASE);
 
     /*  Initialize Ethos-U NPU driver. */
     if (ethosu_init(&npuDriver, /* Arm Ethos-U device driver pointer  */

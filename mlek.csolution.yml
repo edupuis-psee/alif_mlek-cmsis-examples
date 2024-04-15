@@ -25,7 +25,7 @@ solution:
     - pack: ARM::CMSIS@5.9.0
     - pack: ARM::CMSIS-DSP@1.14.4
     - pack: ARM::CMSIS-NN@4.0.0
-    - pack: Arm::ethos-u-core-driver@1.22.8
+    - pack: ARM::ethos-u-core-driver@1.23.2
     - pack: ARM::ml-embedded-eval-kit-uc-api@22.8.0-Beta
     - pack: tensorflow::flatbuffers@1.22.8
     - pack: tensorflow::gemmlowp@1.22.8
@@ -80,12 +80,28 @@ solution:
       device: AE722F80F55D5AS:M55_HP
       define:
         - ETHOSU55
+        - NPU_QCONFIG: 1
+        - NPU_REGIONCFG_0: 1
+        - NPU_REGIONCFG_1: 0
+        - NPU_REGIONCFG_2: 1
+        - AXI_LIMIT0_MEM_TYPE: 3
+        - AXI_LIMIT1_MEM_TYPE: 3
+        - AXI_LIMIT2_MEM_TYPE: 3
+        - AXI_LIMIT3_MEM_TYPE: 3
         - USART_DRV_NUM: 2
 
     - type: Alif-E7-M55-HE
       device: AE722F80F55D5AS:M55_HE
       define:
         - ETHOSU55
+        - NPU_QCONFIG: 1
+        - NPU_REGIONCFG_0: 1
+        - NPU_REGIONCFG_1: 0
+        - NPU_REGIONCFG_2: 1
+        - AXI_LIMIT0_MEM_TYPE: 3
+        - AXI_LIMIT1_MEM_TYPE: 3
+        - AXI_LIMIT2_MEM_TYPE: 3
+        - AXI_LIMIT3_MEM_TYPE: 3
         - USART_DRV_NUM: 4
 
     # NOTE: Currently Keil Studio Cloud doesn't allow switching between different NPU configurations.
