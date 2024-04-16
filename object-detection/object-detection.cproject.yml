@@ -67,6 +67,10 @@ project:
             - +AVH-SSE-310-U65
         - file: linker/alif-e7-m55-hp.sct
           for-context: +Alif-E7-M55-HP
+          for-compiler: AC6
+        - file: linker/alif-e7-m55-hp.ld
+          for-context: +Alif-E7-M55-HP
+          for-compiler: GCC
 
 
   define:

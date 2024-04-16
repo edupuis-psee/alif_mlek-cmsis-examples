@@ -175,7 +175,6 @@ int main()
             __WFI();
         }
         audio.StopAudioRecording();
-        RTSS_InvalidateDCache_by_Addr(arm::app::audioBufferDMA, sizeof(arm::app::audioBufferDMA));
 
         if (0 == captureCount++ % scaleOffsetResetFreq) {
             audioOffset = CalculateOffset(&arm::app::dmaBuf);
