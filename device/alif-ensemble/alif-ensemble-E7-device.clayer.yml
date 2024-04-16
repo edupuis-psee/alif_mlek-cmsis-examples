@@ -61,6 +61,11 @@ layer:
         - file: ./src/BoardInit.cpp
         - file: ./Board/devkit_gen2/board_init.c
 
+    - group: Npu
+      files:
+        - file: ./src/ethosu_cpu_cache.c
+        - file: ./src/ethosu_platform_callbacks.c
+
   components:
     - component: Arm::Machine Learning:NPU Support:Ethos-U Driver&Generic U55
     - component: tensorflow::Machine Learning:TensorFlow:Kernel&Ethos-U
