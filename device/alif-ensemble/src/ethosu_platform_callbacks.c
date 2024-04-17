@@ -69,8 +69,10 @@ bool ethosu_area_needs_invalidate_dcache(const void *p, size_t bytes)
 
 bool ethosu_area_needs_flush_dcache(const void *p, size_t bytes)
 {
-    /* We're not using writeback for any Ethos areas */
-    (void)p;
-    (void)bytes;
-    return false;
+    /* API says null pointer can be passed */
+    if (!p) {
+        return true;
+    }
+    /* We know we have a cache and assume the cache is on */
+    return check_need_to_invalidate(p, bytes);
 }

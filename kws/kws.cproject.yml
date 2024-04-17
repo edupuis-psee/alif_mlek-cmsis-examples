@@ -91,7 +91,10 @@ project:
           for-context: +STM32F746-DISCO
         - file: linker/alif-e7-m55-he.sct
           for-context: +Alif-E7-M55-HE
-
+          for-compiler: AC6
+        - file: linker/alif-e7-m55-he.ld
+          for-context: +Alif-E7-M55-HE
+          for-compiler: GCC
   define:
     - ACTIVATION_BUF_SZ: 131072
 
