@@ -150,10 +150,10 @@ int main()
     /* Initalise the LCD  */
     arm::app::LcdDisplayInit(&arm::app::lcdImage[0][0][0], DIMAGE_X, DIMAGE_Y);
 
-    /* LCD initialisation */
-    //  arm::app::GpioSignal statusLED {arm::app::SignalPort::Port1,
-    //                                  arm::app::SignalPin::Port1_StatusLED2,
-    //                                  arm::app::SignalDirection::DirectionOutput};
+    /* LED initialisation */
+    arm::app::GpioSignal statusLED {arm::app::SignalPort::Port_LED1_Green,
+                                    arm::app::SignalPin::LED1_Green,
+                                    arm::app::SignalDirection::DirectionOutput};
 
     /* Start the camera */
     arm::app::CameraCaptureStart(arm::app::rawImage);
@@ -196,13 +196,13 @@ int main()
         /* Run inference over this image. */
         printf("\rImage %" PRIu32 "; ", ++imgCount);
 
-//        statusLED.Send(true);
+        statusLED.Send(true);
         if (!model.RunInference()) {
             printf_err("Inference failed.\n");
-//            statusLED.Send(false);
+            statusLED.Send(false);
             return 2;
         }
-//        statusLED.Send(false);
+        statusLED.Send(false);
 
         if (!postProcess.DoPostProcess()) {
             printf_err("Post-processing failed.\n");

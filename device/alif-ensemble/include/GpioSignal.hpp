@@ -25,6 +25,7 @@ extern "C" {
 #endif // #if defined(__cplusplus)
 
 #include "gpio_wrapper.h"
+#include "board.h"
 
 #if defined(__cplusplus)
 }
@@ -37,14 +38,21 @@ namespace app {
     enum class SignalDirection { DirectionOutput = 0, DirectionInput = 1, DirectionInvalid = 2 };
 
     /* Valid GPIO port numbers */
-    enum class SignalPort { Port1 = 1, Port2 = 2, Port3 = 3 };
+    enum class SignalPort { Port_LED1_Red   = BOARD_LEDRGB0_R_GPIO_PORT,
+                            Port_LED1_Green = BOARD_LEDRGB0_G_GPIO_PORT,
+                            Port_LED1_Blue  = BOARD_LEDRGB0_B_GPIO_PORT,
+                            Port_LED2_Red   = BOARD_LEDRGB1_R_GPIO_PORT,
+                            Port_LED2_Green = BOARD_LEDRGB1_G_GPIO_PORT,
+                            Port_LED2_Blue  = BOARD_LEDRGB1_B_GPIO_PORT };
 
     /* Valid and used GPIO pin number definitions */
     enum class SignalPin {
-        Port1_UserButton1 = 12, /* Wired to SW2 on the board. */
-        Port3_UserButton2 = 4,  /* Wired to SW3 on the board. */
-        Port1_StatusLED1 = 14,  /* LED1 - green. */
-        Port1_StatusLED2 = 15   /* LED2 - orange. */
+        LED1_Red   = BOARD_LEDRGB0_R_PIN_NO,
+        LED1_Green = BOARD_LEDRGB0_G_PIN_NO,
+        LED1_Blue  = BOARD_LEDRGB0_B_PIN_NO,
+        LED2_Red   = BOARD_LEDRGB1_R_PIN_NO,
+        LED2_Green = BOARD_LEDRGB1_G_PIN_NO,
+        LED2_Blue  = BOARD_LEDRGB1_B_PIN_NO
     };
 
     /**
