@@ -30,6 +30,7 @@
 #include "KwsResult.hpp"        /* KWS results class. */
 #include "Labels.hpp"           /* Label Data for the model. */
 #include "MicroNetKwsModel.hpp" /* Model API. */
+#include "GpioSignal.hpp"
 
 #include <string>
 #include <vector>
@@ -147,6 +148,13 @@ int main()
     arm::app::KwsPostProcess postProcess =
         arm::app::KwsPostProcess(outputTensor, classifier, labels, singleInfResult);
 
+    arm::app::GpioSignal statusLED {arm::app::SignalPort::Port_LED1_Green,
+                                    arm::app::SignalPin::LED1_Green,
+                                    arm::app::SignalDirection::DirectionOutput};
+
+    arm::app::GpioSignal keywordLED {arm::app::SignalPort::Port_LED2_Blue,
+                                     arm::app::SignalPin::LED2_Blue,
+                                     arm::app::SignalDirection::DirectionOutput};
     /* Creating a sliding window through the whole audio clip. */
     auto audioDataSlider =
         arm::app::audio::SlidingWindow<const int16_t>(static_cast<int16_t*>(arm::app::monoBuf.data),
@@ -219,10 +227,13 @@ int main()
 
             info("Inference #: %" PRIu32 "\n", ++inferenceCount);
 
+            statusLED.Send(true);
             if (!model.RunInference()) {
                 printf_err("Inference failed.");
+                statusLED.Send(false);
                 return 2;
             }
+            statusLED.Send(false);
 
             if (!postProcess.DoPostProcess()) {
                 printf_err("Post-processing failed.");
@@ -257,6 +268,14 @@ int main()
                         plot.ClearStringLine(9);
                         std::string dispStr = " Last Keyword: " + topKeyword;
                         plot.DisplayStringAtLine(9, dispStr);
+                        if (score > 0.8f) {
+                            if (topKeyword == "on") {
+                                keywordLED.Send(true);
+                            }
+                            if (topKeyword == "off") {
+                                keywordLED.Send(false);
+                            }
+                        }
                     }
                 }
             }
