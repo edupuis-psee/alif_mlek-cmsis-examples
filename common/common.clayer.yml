@@ -1,0 +1,53 @@
+#  SPDX-FileCopyrightText: Copyright 2022-2023 Arm Limited and/or its
+#  affiliates <open-source-office@arm.com>
+#  SPDX-License-Identifier: Apache-2.0
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/schemas/projmgr/2.0.0/tools/projmgr/schemas/clayer.schema.json
+
+layer:
+
+  description: Common files and platform-agnostic components for examples based on Arm ML Embedded evaluation kit.
+
+
+  groups:
+    - group: Common
+      files:
+        - file: include/BufAttributes.hpp
+        - file: include/ethosu_mem_config.h
+
+  # Workaround 4001: for TensorFlow's pack referring to
+  # CMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE.
+  # Can be removed once the pack has been fixed.
+  misc:
+    - for-compiler: AC6
+      CPP:
+        - "-include \"RTE_Components.h\""
+
+  components:
+    - component: ARM::CMSIS:CORE
+    - component: ARM::CMSIS:DSP&Source
+    - component: ARM::CMSIS:NN Lib
+    - component: tensorflow::Data Exchange:Serialization:flatbuffers
+    - component: tensorflow::Data Processing:Math:gemmlowp fixed-point
+    - component: tensorflow::Data Processing:Math:kissfft
+    - component: tensorflow::Data Processing:Math:ruy
+    - component: tensorflow::Machine Learning:TensorFlow:Kernel Utils
+      # Workaround 4001 (see description above)
+      define:
+        - CMSIS_DEVICE_ARM_CORTEX_M_XX_HEADER_FILE: CMSIS_device_header
+    - component: tensorflow::Machine Learning:TensorFlow:Testing
+    - component: ARM::ML Eval Kit:Common:API
+    - component: ARM::ML Eval Kit:Common:Log
+    - component: ARM::ML Eval Kit:Common:Math
