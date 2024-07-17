@@ -131,11 +131,11 @@ SECTIONS
   .bss.sram0 (NOLOAD) : ALIGN(8)
   {
     * (.bss.NoInit.activation_buf_sram)
+    * (lcd_buf)              /* LCD frame Buffer. */
   } > SRAM0
 
   .bss.sram1 (NOLOAD) : ALIGN(8)
   {
-    * (lcd_buf)              /* LCD frame Buffer. */
     * (raw_buf)              /* Camera Frame Buffer */
     * (rgb_buf)              /* Bayer to RGB Conversion. */
   } > SRAM1

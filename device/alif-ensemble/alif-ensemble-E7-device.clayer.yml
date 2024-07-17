@@ -109,5 +109,6 @@ layer:
     - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
       for-context: +Alif-E7-M55-HP
 
+    #- component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
     - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
       for-context: +Alif-E7-M55-HP
