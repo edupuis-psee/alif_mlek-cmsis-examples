@@ -75,6 +75,7 @@ project:
 
   define:
     - ACTIVATION_BUF_SZ: 532480
+    #- MODEL_IN_EXT_FLASH
 
   layers:
     - layer: ../common/common.clayer.yml

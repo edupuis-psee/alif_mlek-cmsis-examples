@@ -97,6 +97,7 @@ project:
           for-compiler: GCC
   define:
     - ACTIVATION_BUF_SZ: 131072
+    #- MODEL_IN_EXT_FLASH
 
   layers:
     - layer: ../common/common.clayer.yml
