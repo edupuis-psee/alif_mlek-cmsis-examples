@@ -1,129 +1,107 @@
 {
-    // SPDX-FileCopyrightText: Copyright (c) 2022-2023 Arm Limited and/or its
-    // affiliates <open-source-office@arm.com>
-    // SPDX-License-Identifier: Apache-2.0
-
-    // Licensed under the Apache License, Version 2.0 (the "License");
-    // you may not use this file except in compliance with the License.
-    // You may obtain a copy of the License at
-
-    //      http://www.apache.org/licenses/LICENSE-2.0
-
-    // Unless required by applicable law or agreed to in writing, software
-    // distributed under the License is distributed on an "AS IS" BASIS,
-    // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    // See the License for the specific language governing permissions and
-    // limitations under the License.
-
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Clean build files",
+            "label": "Clean all (including YML build files)",
             "type": "shell",
-            "command": "rm -rf $(find . -name \"*.cprj\" -o -name tmp -o -name out -o -name RTE -o -name .clangd -o -name \"*.cbuild*.yml\")",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            }
-        },
-        {
-            "label": "Generate projects",
-            "type": "shell",
-            "command": "csolution",
-            "args": [
-                "convert",
-                "-s",
-                "${workspaceFolder}/mlek.csolution.yml"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": false
+            "windows": {
+                "command": [
+                    "cbuild ${command:cmsis-csolution.getSolutionPath} --clean --context +Alif*;",
+                    "rm -Force ./kws/*.cbuild.yml;",
+                    "rm -Force ./kws/*.cprj;",
+                    "rm -Force ./object-detection/*.cbuild.yml;",
+                    "rm -Force ./object-detection/*.cprj;",
+                ]
             },
-            "dependsOn": [
-                "Clean build files"
-            ]
+            "linux": {
+                "command": [
+                    "cbuild ${command:cmsis-csolution.getSolutionPath} --clean --context +Alif*;",
+                    "rm -f ./kws/*.cbuild.yml;",
+                    "rm -f ./kws/*.cprj;",
+                    "rm -f ./object-detection/*.cbuild.yml;",
+                    "rm -f ./object-detection/*.cprj;",
+                ]
+            },
+            "problemMatcher": []
         },
         {
-            "label": "Build project",
+            "label": "Prepare program with Security Toolkit",
             "type": "shell",
-            "command": "cbuild",
-            "args": [
-                "${workspaceFolder}/${input:project}/${input:project}.${input:buildType}+${input:target}.cprj",
-                "--rebuild",
-                "--generator",
-                "\"Unix Makefiles\"",
-                "-j",
-                "${input:nthreads}"
+            "windows": {
+                "command": [
+                    "$outputElfFilename='${command:cmsis-csolution.getBinaryFile}';",
+                    "$outputBinFilename=${outputElfFilename}.Substring(0, $outputElfFilename.Length -3) + 'bin';",
+                    "cp \"$outputBinFilename\" '${config:alif.setools.root}/build/images/alif-img.bin';",
+                    "cp './.alif/${command:cmsis-csolution.getProcessorName}_cfg.json' '${config:alif.setools.root}/alif-img.json';"
+                ]
+            },
+            "linux": {
+                "command": [
+                    "outputElfFilename='${command:cmsis-csolution.getBinaryFile}';",
+                    "cp \"${outputElfFilename/%???/bin}\" '${config:alif.setools.root}/build/images/alif-img.bin';",
+                    "cp './.alif/${command:cmsis-csolution.getProcessorName}_cfg.json' '${config:alif.setools.root}/alif-img.json';"
+                ]
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Program with Security Toolkit",
+            "type": "shell",
+            "options": {"cwd": "${config:alif.setools.root}"},
+            "command": [
+                "./app-gen-toc -f alif-img.json;",
+                "./app-write-mram -p;",
+                "rm ./build/images/alif-img.bin;",
+                "rm ./alif-img.json;"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            }
+            "problemMatcher": [],
+            "dependsOn": "Prepare program with Security Toolkit"
         },
         {
-            "type": "embedded-debug.flash",
-            "serialNumber": "${command:device-manager.getSerialNumber}",
-            "program": "${command:cmsis-csolution.getBinaryFile}",
-            "cmsisPack": "${command:device-manager.getDevicePack}",
+            "label": "Program with Security Toolkit (select COM port)",
+            "type": "shell",
+            "options": {"cwd": "${config:alif.setools.root}"},
+            "command": [
+                "./app-gen-toc -f alif-img.json;",
+                "./app-write-mram -p -d;",
+                "rm ./build/images/alif-img.bin;",
+                "rm ./alif-img.json;"
+            ],
             "problemMatcher": [],
-            "label": "embedded-debug.flash: Flash Device"
+            "dependsOn": "Prepare program with Security Toolkit"
         },
         {
-            "type": "cmsis-csolution.build",
-            "solution": "${command:cmsis-csolution.getSolutionPath}",
-            "project": "${command:cmsis-csolution.getProjectPath}",
-            "buildType": "${command:cmsis-csolution.getBuildType}",
-            "targetType": "${command:cmsis-csolution.getTargetType}",
-            "rebuild": false,
+            "label": "Update TOC with Security Toolkit",
+            "type": "shell",
+            "options": {"cwd": "${config:alif.setools.root}"},
+            "command": [
+                "./app-gen-toc -f alif-img.json;",
+                "./app-write-mram -S;",
+                "rm ./build/images/alif-img.bin;",
+                "rm ./alif-img.json;"
+            ],
             "problemMatcher": [],
-            "label": "cmsis-csolution.build: Build"
+            "dependsOn": "Prepare program with Security Toolkit"
+        },
+        {
+            "label": "Install debug stubs with Security Toolkit",
+            "type": "shell",
+            "options": {"cwd": "${config:alif.setools.root}"},
+            "command": [
+                "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
+                "./app-write-mram;",
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Install debug stubs with Security Toolkit (select COM port)",
+            "type": "shell",
+            "options": {"cwd": "${config:alif.setools.root}"},
+            "command": [
+                "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
+                "./app-write-mram -d;",
+            ],
+            "problemMatcher": []
         }
-    ],
-
-    "inputs": [
-        {
-          "type": "pickString",
-          "id": "project",
-          "description": "Project to build",
-          "options": [
-            "object-detection",
-            "kws",
-          ],
-          "default": "object-detection"
-        },
-        {
-            "type": "pickString",
-            "id": "buildType",
-            "description": "Build type",
-            "options": [
-              "Release",
-              "Debug",
-            ],
-            "default": "Release"
-        },
-        {
-            "type": "pickString",
-            "id": "target",
-            "description": "Target to build for",
-            "options": [
-              "AVH-SSE-300-U55",
-              "AVH-SSE-300-U65",
-              "AVH-SSE-310-U55",
-              "AVH-SSE-310-U65",
-              "FRDM-K64F",
-              "STM32F746-DISCO",
-              "Alif-E7-M55-HE",
-              "Alif-E7-M55-HP"
-            ],
-            "default": "AVH-SSE-300-U55"
-        },
-        {
-            "type": "promptString",
-            "id": "nthreads",
-            "description": "Number of CPU threads to spawn for build",
-            "default": "4"
-        },
     ]
 }
