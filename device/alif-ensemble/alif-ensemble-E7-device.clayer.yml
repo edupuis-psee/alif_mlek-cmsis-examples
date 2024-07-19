@@ -60,6 +60,8 @@ layer:
         - file: ./include/BoardInit.hpp
         - file: ./src/BoardInit.cpp
         - file: ./Board/devkit_gen2/board_init.c
+        - file: ./src/ospi_flash.c
+        - file: ./src/mpu_M55_region_config.c
 
     - group: Npu
       files:
@@ -112,3 +114,7 @@ layer:
     #- component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
     - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
       for-context: +Alif-E7-M55-HP
+
+    # External flash
+    - component: AlifSemiconductor::Device:SOC Peripherals:OSPI
+    - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI

@@ -30,6 +30,7 @@ extern "C" {
 #include "uart_stdout.h"
 #include "board.h"
 #include "power.h"
+#include "ospi_flash.h"
 #include <stdio.h>
 
 static struct ethosu_driver npuDriver;
@@ -114,6 +115,10 @@ void BoardInit(void)
 #if !defined(SEMIHOSTING)
     UartStdOutInit();
 #endif /* defined(SEMIHOSTING) */
+
+#if defined(MODEL_IN_EXT_FLASH)
+    ospi_flash_init();
+#endif
 
 #if defined(ETHOSU_ARCH) && (ETHOSU_ARCH==u55)
     if (!NpuInit()) {
