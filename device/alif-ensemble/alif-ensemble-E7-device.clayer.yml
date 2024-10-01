@@ -54,6 +54,7 @@ layer:
         - file: ./src/retarget.c
         - file: ./src/uart_stdout.c
         - file: ./src/uart_stdout.h
+        - file: ./src/retarget_sbrk.c
 
     - group: Init
       files:
