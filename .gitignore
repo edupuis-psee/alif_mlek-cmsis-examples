@@ -1,0 +1,6 @@
+out/
+tmp/
+*.yml
+!mlek.cbuild-pack.yml
+*.cprj
+*.clangd
