@@ -1,6 +1,6 @@
 /* This file was ported to work on Alif Semiconductor Ensemble family of devices. */
 
-/* Copyright (C) 2022-2024 Alif Semiconductor - All Rights Reserved.
+/* Copyright (C) 2023 Alif Semiconductor - All Rights Reserved.
  * Use, distribution and modification of this code is permitted under the
  * terms stated in the Alif Semiconductor Software License Agreement
  *
@@ -27,13 +27,11 @@
  * limitations under the License.
  */
 
-__STACK_SIZE = 0x00003000;
-__HEAP_SIZE  = 0x00008000;
+__STACK_SIZE    = 0x00002000;
+__HEAP_SIZE     = 0x00004000;
 __APP_HEAP_SIZE = 0x00004000;
-__ROM_BASE      = 0x80000000;
+__ROM_BASE      = 0x80200000;
 __ROM_SIZE      = 0x00200000;
-__OSPI_FLASH_BASE = 0xC0000000;
-__OSPI_FLASH_SIZE = 0x02000000;
 
 TGU_BLOCK_SIZE   = 16384;
 
@@ -47,11 +45,10 @@ TGU_BLOCK_SIZE   = 16384;
 MEMORY
 {
   ITCM  (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
-  DTCM  (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00040000
+  DTCM  (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
   SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00400000
   SRAM1 (rwx) : ORIGIN = 0x08000000, LENGTH = 0x00280000
   MRAM  (rx)  : ORIGIN = __ROM_BASE, LENGTH = __ROM_SIZE
-  OSPI_FLASH (rx) : ORIGIN = __OSPI_FLASH_BASE, LENGTH = __OSPI_FLASH_SIZE
 }
 
 ENTRY(Reset_Handler)
@@ -71,10 +68,6 @@ SECTIONS
     *tcm_partition*(.text .rodata*)
 
     *lv_*(.text .rodata*)
-    *libg.a:*printf*(.text* .rodata*)
-    *libstdc++.a:cp-demangle.o(.text* .rodata*)
-    *flatbuffer*.obj(.text .rodata*)
-    *CMSIS*.obj(.text .rodata*)
 
     *(startup_ro_data)
     . = ALIGN(16);
@@ -134,7 +127,6 @@ SECTIONS
     *(.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
     *(.bss.camera_frame_buf)              /* Camer Frame Buffer */
     *(.bss.camera_frame_bayer_to_rgb_buf) /* (Optional) Camera Frame Buffer for Bayer to RGB Conversion. */
-    *(.bss.NoInit.activation_buf_sram)
   } > SRAM0
 
   .bss (NOLOAD) : ALIGN(8)
@@ -226,18 +218,10 @@ SECTIONS
     *(.dtors)
 
     *(.rodata*)
-    *(nn_model)
-    *(labels)
-    *(ifm)
 
     KEEP(*(.eh_frame*))
     . = ALIGN(16);
   } > MRAM
-
-  .readonly.at_ext_flash : ALIGN(8)
-  {
-    *(nn_model_ext_flash)
-  } > OSPI_FLASH
 
   /* Check if data + heap + stack exceeds RAM limit */
   ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")

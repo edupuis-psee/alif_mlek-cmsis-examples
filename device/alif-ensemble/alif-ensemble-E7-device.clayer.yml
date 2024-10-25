@@ -14,7 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/schemas/projmgr/2.0.0/tools/projmgr/schemas/clayer.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.6.0/tools/projmgr/schemas/clayer.schema.json
 
 layer:
   description: Alif Ensemble E7 ML islands' CPU device layer (High-Performance and High-Efficiency Arm Cortex-M55 CPUs).
@@ -77,8 +77,6 @@ layer:
     - component: AlifSemiconductor::Device:SOC Peripherals:GPIO
     - component: AlifSemiconductor::Device:SOC Peripherals:PINCONF
     - component: AlifSemiconductor::Device:Startup
-    - component: ARM::CMSIS Driver:USART
-    - component: ARM::CMSIS Driver:USART:Custom
 #    - component: AlifSemiconductor::Device:SE Services:SE RunTime services&Source
 #    - component: AlifSemiconductor::Device:SE Services:MHU Driver
 
@@ -98,6 +96,9 @@ layer:
       for-context: +Alif-E7-M55-HP
 
     - component: AlifSemiconductor::Device:SOC Peripherals:CDC
+      for-context: +Alif-E7-M55-HP
+
+    - component: AlifSemiconductor::Device:SOC Peripherals:MIPI DSI CSI2 DPHY
       for-context: +Alif-E7-M55-HP
 
     - component: AlifSemiconductor::Device:SOC Peripherals:MIPI CSI2

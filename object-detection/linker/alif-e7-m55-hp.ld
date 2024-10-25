@@ -29,10 +29,20 @@
 
 __STACK_SIZE = 0x00008000;
 __HEAP_SIZE  = 0x00010000;
-__ROM_BASE = 0x80008000;
-__ROM_SIZE = 0x0047F000;
+__APP_HEAP_SIZE = 0x00004000;
+__ROM_BASE      = 0x80200000;
+__ROM_SIZE      = 0x00200000;
 __OSPI_FLASH_BASE = 0xC0000000;
 __OSPI_FLASH_SIZE = 0x02000000;
+
+TGU_BLOCK_SIZE   = 16384;
+
+/*
+ * Note:
+ * The empty regions(eg SRAM1) are ON by default, but may have been released
+ * by some example applications. So make sure your application requests
+ * power for these regions before adding contents.
+ */
 
 MEMORY
 {
@@ -52,11 +62,16 @@ SECTIONS
   {
     KEEP(*(.vectors))
 
-    *startup_M55*.c.obj(.text .rodata*)
-    *system_M55*.c.obj(.text .rodata*)
-    *mpu_M55*.c.obj(.text .rodata*)
-    *main.cpp.obj(.text .rodata*)
-    *system_utils.c.obj(.text .rodata*)
+    *startup_*(.text .rodata*)
+    *system_*(.text .rodata*)
+    *system_utils*(.text .rodata*)
+    *pm*(.text .rodata*)
+    *tgu_*(.text .rodata*)
+    *mpu_*(.text .rodata*)
+    *tcm_partition*(.text .rodata*)
+
+    *lv_*(.text .rodata*)
+
     *libg.a:*printf*(.text* .rodata*)
     *libstdc++.a:cp-demangle.o(.text* .rodata*)
     *flatbuffer*.obj(.text .rodata*)
@@ -64,54 +79,42 @@ SECTIONS
     *(startup_ro_data)
   } > MRAM
 
-  .copy.table.at_mram : ALIGN(4)
+  .copy.table : ALIGN(4)
   {
     __copy_table_start__ = .;
-    LONG ( LOADADDR(.text.itcm.at_mram) )
-    LONG ( ADDR(.text.itcm.at_mram) )
-    LONG ( SIZEOF(.text.itcm.at_mram)/4 )
-    LONG ( LOADADDR(.data.dtcm.at_mram) )
-    LONG ( ADDR(.data.dtcm.at_mram) )
-    LONG ( SIZEOF(.data.dtcm.at_mram)/4 )
-    LONG ( LOADADDR(.data.sram0.at_mram) )
-    LONG ( ADDR(.data.sram0.at_mram) )
-    LONG ( SIZEOF(.data.sram0.at_mram)/4 )
+    LONG ( LOADADDR(.data.at_dtcm) )
+    LONG ( ADDR(.data.at_dtcm) )
+    LONG ( SIZEOF(.data.at_dtcm)/4 )
+    LONG ( LOADADDR(.code.at_itcm) )
+    LONG ( ADDR(.code.at_itcm) )
+    LONG ( SIZEOF(.code.at_itcm)/4 )
     __copy_table_end__ = .;
+    . = ALIGN(16);
   } > MRAM
 
-  .zero.table.at_mram : ALIGN(4)
+  .zero.table : ALIGN(4)
   {
     __zero_table_start__ = .;
-    LONG (ADDR(.bss.itcm))
-    LONG (SIZEOF(.bss.itcm)/4)
     LONG (ADDR(.bss))
     LONG (SIZEOF(.bss)/4)
-    LONG (ADDR(.bss.sram0))
-    LONG (SIZEOF(.bss.sram0)/4)
-    LONG (ADDR(.bss.sram1))
-    LONG (SIZEOF(.bss.sram1)/4)
+    LONG (ADDR(.bss.at_sram0))
+    LONG (SIZEOF(.bss.at_sram0)/4)
     __zero_table_end__ = .;
+    . = ALIGN(16);
   } > MRAM
 
-  .vectors.itcm (NOLOAD) : ALIGN(2048)
+  .code.at_itcm : ALIGN(8)
   {
-    *(.bss.noinit.ram_vectors)
-  } > ITCM
-
-  .text.itcm.at_mram : ALIGN(8)
-  {
-    /* ITCM has non-startup code, CMSIS-DSP tables, audio record buffer and RAM vectors */
     *(.text*)
-    *(fast_code)
-  } > ITCM AT> MRAM
+    . = ALIGN(16);
+  } > ITCM AT > MRAM
 
-  .data.dtcm.at_mram : ALIGN(8)
+  .data.at_dtcm : ALIGN(8)
   {
-    /* DTCM has all read-write data, including NPU activation buffer and audio processing buffers */
     *(vtable)
     *(.data)
     *(.data*)
-    *arm_common_tables.c.obj(.data* .rodata*)
+    *arm_common_tables*(.data* .rodata*)
 
     KEEP(*(.jcr*))
 
@@ -121,30 +124,20 @@ SECTIONS
     __exidx_start = .;
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
     __exidx_end = .;
+    . = ALIGN(16);
+  } > DTCM AT > MRAM
 
-  } > DTCM AT> MRAM
-
-  /* Place non-zero code/data here if required in SRAM0 */
-  .data.sram0.at_mram : ALIGN(8)
-  {
-    *(ifm)
-  } > SRAM0 AT> MRAM
-
-  .bss.sram0 (NOLOAD) : ALIGN(8)
+  .bss.at_sram0 (NOLOAD) : ALIGN(8)
   {
     * (.bss.NoInit.activation_buf_sram)
     * (lcd_buf)              /* LCD frame Buffer. */
   } > SRAM0
 
-  .bss.sram1 (NOLOAD) : ALIGN(8)
+  .bss.at_sram1 (NOLOAD) : ALIGN(8)
   {
     * (raw_buf)              /* Camera Frame Buffer */
     * (rgb_buf)              /* Bayer to RGB Conversion. */
   } > SRAM1
-
-  .bss.itcm (NOLOAD) : ALIGN(8)
-  {
-  } > ITCM
 
   .bss (NOLOAD) : ALIGN(8)
   {
@@ -152,9 +145,29 @@ SECTIONS
     *(.bss)
     *(.bss.*)
     *(COMMON)
+
     . = ALIGN(8);
     __bss_end__ = .;
   } > DTCM
+
+  .nonsecure0_region (NOLOAD) :
+  {
+    . = ALIGN(TGU_BLOCK_SIZE);
+    __ns_region_0_start = .;
+    * (eth_buf)
+    * (usb_dma_buf)
+    * (sd_dma_buf)
+    . = ALIGN(TGU_BLOCK_SIZE);
+    __ns_region_0_end = .;
+  } > DTCM
+
+  .__app_heap (NOLOAD) : ALIGN(8)
+  {
+     . = ALIGN(8);
+     __RAM_segment_used_end__ = .;
+     . = . + __APP_HEAP_SIZE;
+     . = ALIGN(8);
+   } >DTCM
 
   .heap (NOLOAD) : ALIGN(8)
   {
