@@ -77,6 +77,16 @@ SECTIONS
     *CMSIS*.obj(.text .rodata*)
 
     *(startup_ro_data)
+
+    *(.text*)
+
+    . = ALIGN(8);
+    *(.ARM.extab* .gnu.linkonce.armextab.*)
+    . = ALIGN(8);
+    __exidx_start = .;
+    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    __exidx_end = .;
+
     . = ALIGN(16);
   } > MRAM
 
@@ -106,7 +116,6 @@ SECTIONS
 
   .code.at_itcm : ALIGN(8)
   {
-    *(.text*)
     . = ALIGN(16);
   } > ITCM AT > MRAM
 
@@ -119,12 +128,6 @@ SECTIONS
 
     KEEP(*(.jcr*))
 
-    . = ALIGN(8);
-    *(.ARM.extab* .gnu.linkonce.armextab.*)
-    . = ALIGN(8);
-    __exidx_start = .;
-    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    __exidx_end = .;
     . = ALIGN(16);
   } > DTCM AT > MRAM
 
