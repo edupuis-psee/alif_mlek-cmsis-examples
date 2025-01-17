@@ -39,10 +39,10 @@ layer:
     - component: ARM::CMSIS:CORE
     - component: ARM::CMSIS:DSP&Source
     - component: ARM::CMSIS:NN Lib
-    - component: tensorflow::Data Exchange:Serialization:flatbuffers
-    - component: tensorflow::Data Processing:Math:gemmlowp fixed-point
-    - component: tensorflow::Data Processing:Math:kissfft
-    - component: tensorflow::Data Processing:Math:ruy
+    - component: tensorflow::Data Exchange:Serialization:flatbuffers&tensorflow
+    - component: tensorflow::Data Processing:Math:gemmlowp fixed-point&tensorflow
+    - component: tensorflow::Data Processing:Math:kissfft&tensorflow
+    - component: tensorflow::Data Processing:Math:ruy&tensorflow
     - component: tensorflow::Machine Learning:TensorFlow:Kernel Utils
       # Workaround 4001 (see description above)
       define:
