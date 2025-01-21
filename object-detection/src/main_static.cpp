@@ -25,12 +25,8 @@
  * some heap for the API runtime.
  */
 #include "BufAttributes.hpp" /* Buffer attributes to be applied */
-#include "Classifier.hpp"    /* Classifier for the result */
-#include "DetectionResult.hpp"
-#include "DetectorPostProcessing.hpp" /* Post Process */
-#include "DetectorPreProcessing.hpp"  /* Pre Process */
-#include "YoloFastestModel.hpp"       /* Model API */
 #include <random>
+#include "TestModel.hpp"
 
 /* Platform dependent files */
 #include "RTE_Components.h"  /* Provides definition for CMSIS_device_header */
@@ -124,7 +120,9 @@ int main()
     info("Hello World!\n");
 
     /* Model object creation and initialisation. */
-    arm::app::YoloFastestModel model;
+    arm::app::TestModel model;  /* Model wrapper object. */
+
+    /* Load the model. */
     if (!model.Init(arm::app::tensorArena,
                     sizeof(arm::app::tensorArena),
                     arm::app::object_detection::GetModelPointer(),
@@ -156,6 +154,13 @@ int main()
         return 2;
     }
     BOARD_GPIO_5_DRV->SetValue(PIN_4, GPIO_PIN_OUTPUT_STATE_LOW);
+
+    /* Post-process results if applicable. */
+    // auto outputCount = model.GetOutputTensorCount();
+    // for (int i = 0; i < outputCount; ++i) {
+    //     TfLiteTensor* outputTensor = model.GetOutputTensor(i);
+    //     info("Output tensor %d: size=%d\n", i, outputTensor->bytes);
+    // }
 
     /* Log the results. */
     info("Inference completed successfully.\n");

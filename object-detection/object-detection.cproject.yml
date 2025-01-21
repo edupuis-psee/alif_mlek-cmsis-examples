@@ -26,10 +26,14 @@ project:
     - group: Use Case
       files:
         - file: include/InputFiles.hpp
+        - file: include/TestModel.hpp
+        - file: include/MicroMutableAllOpsResolver.hpp
         - file: src/InputFiles.cpp
         - file: src/sample_image.cpp
         - file: src/yolo-fastest_192_face_v4_vela_H256.tflite.cpp
         - file: src/main_static.cpp
+        - file: src/TestModel.cpp
+        - file: src/MicroMutableAllOpsResolver.cpp
           for-context:
             - +Alif-E7-M55-HP
 
