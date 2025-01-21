@@ -29,8 +29,8 @@
 #include "DetectionResult.hpp"
 #include "DetectorPostProcessing.hpp" /* Post Process */
 #include "DetectorPreProcessing.hpp"  /* Pre Process */
-#include "InputFiles.hpp"             /* Baked-in input (not needed for live data) */
 #include "YoloFastestModel.hpp"       /* Model API */
+#include <random>
 
 /* Platform dependent files */
 #include "RTE_Components.h"  /* Provides definition for CMSIS_device_header */
@@ -42,7 +42,6 @@
 #include "global_map.h"
 #include "Driver_GPIO.h"
 #include "pinconf.h"
-
 
 namespace arm {
 namespace app {
@@ -97,12 +96,32 @@ void initialize_gpio_pins() {
     pinconf_set(PORT_5, PIN_4, PINMUX_ALTERNATE_FUNCTION_0, config_gpio);
 }
 
+/**
+ * @brief Generates a random tensor.
+ *
+ * This function populates the input tensor with random values.
+ *
+ * @param tensor Pointer to the input tensor.
+ */
+void initialize_random_tensor(TfLiteTensor* tensor) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<uint8_t> dis(0, 255);
+
+    auto dataPtr = tensor->data.uint8;
+    const size_t tensorSize = tensor->bytes;
+
+    for (size_t i = 0; i < tensorSize; ++i) {
+        dataPtr[i] = dis(gen);
+    }
+}
+
 int main()
 {
     /* Initialise the UART module to allow printf related functions (if using retarget) */
     BoardInit();
     initialize_gpio_pins();
-    info("OKOK");
+    info("Hello World!\n");
 
     /* Model object creation and initialisation. */
     arm::app::YoloFastestModel model;
@@ -113,8 +132,6 @@ int main()
         printf_err("Failed to initialise model\n");
         return 1;
     }
-
-    auto initialImgIdx = 0;
 
     TfLiteTensor* inputTensor   = model.GetInputTensor(0);
     TfLiteTensor* outputTensor0 = model.GetOutputTensor(0);
@@ -128,66 +145,20 @@ int main()
         return 1;
     }
 
-    TfLiteIntArray* inputShape = model.GetInputShape(0);
+    /* Initialize the input tensor with random values. */
+    initialize_random_tensor(inputTensor);
 
-    const int inputImgCols = inputShape->data[arm::app::YoloFastestModel::ms_inputColsIdx];
-    const int inputImgRows = inputShape->data[arm::app::YoloFastestModel::ms_inputRowsIdx];
-
-    /* Set up pre and post-processing. */
-    arm::app::DetectorPreProcess preProcess =
-        arm::app::DetectorPreProcess(inputTensor, true, model.IsDataSigned());
-
-    std::vector<arm::app::object_detection::DetectionResult> results;
-    const arm::app::object_detection::PostProcessParams postProcessParams{
-        inputImgRows,
-        inputImgCols,
-        arm::app::object_detection::originalImageSize,
-        arm::app::object_detection::anchor1,
-        arm::app::object_detection::anchor2};
-    arm::app::DetectorPostProcess postProcess =
-        arm::app::DetectorPostProcess(outputTensor0, outputTensor1, results, postProcessParams);
-
-    /* Strings for presentation/logging. */
-    std::string str_inf{"Running inference... "};
-
-    const uint8_t* currImage = get_img_array(0);
-
-    auto dstPtr = static_cast<uint8_t*>(inputTensor->data.uint8);
-    const size_t copySz =
-        inputTensor->bytes < IMAGE_DATA_SIZE ? inputTensor->bytes : IMAGE_DATA_SIZE;
-
-    /* Run the pre-processing, inference and post-processing. */
-    if (!preProcess.DoPreProcess(currImage, copySz)) {
-        printf_err("Pre-processing failed.");
-        return 1;
-    }
-
-    /* Run inference over this image. */
-    info("Running inference on image %" PRIu32 " => %s\n", 0, get_filename(0));
+    /* Run inference over the random tensor. */
+    info("Running inference on random tensor\n");
     BOARD_GPIO_5_DRV->SetValue(PIN_4, GPIO_PIN_OUTPUT_STATE_HIGH);
     if (!model.RunInference()) {
-        printf_err("Inference failed.");
+        printf_err("Inference failed.\n");
         return 2;
     }
     BOARD_GPIO_5_DRV->SetValue(PIN_4, GPIO_PIN_OUTPUT_STATE_LOW);
 
-    if (!postProcess.DoPostProcess()) {
-        printf_err("Post-processing failed.");
-        return 3;
-    }
-
     /* Log the results. */
-    for (uint32_t i = 0; i < results.size(); ++i) {
-        info("Detection at index %" PRIu32 ", at x-coordinate %" PRIu32 ", y-coordinate %" PRIu32
-             ", width %" PRIu32 ", height %" PRIu32 "\n",
-             i,
-             results[i].m_x0,
-             results[i].m_y0,
-             results[i].m_w,
-             results[i].m_h);
-    }
-
-    results.clear();
+    info("Inference completed successfully.\n");
 
     return 0;
 }
