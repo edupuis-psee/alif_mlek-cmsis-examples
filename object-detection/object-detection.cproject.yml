@@ -36,6 +36,7 @@ project:
         - file: src/MicroMutableAllOpsResolver.cpp
           for-context:
             - +Alif-E7-M55-HP
+            - +Alif-E7-M55-HE
 
   linker:
     - script: linker/alif-e7-m55-hp.sct
@@ -43,6 +44,12 @@ project:
       for-compiler: AC6
     - script: linker/alif-e7-m55-hp.ld
       for-context: +Alif-E7-M55-HP
+      for-compiler: GCC
+    - script: linker/alif-e7-m55-he.sct
+      for-context: +Alif-E7-M55-HE
+      for-compiler: AC6
+    - script: linker/alif-e7-m55-he.ld
+      for-context: +Alif-E7-M55-HE
       for-compiler: GCC
 
   define:
