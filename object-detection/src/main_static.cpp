@@ -37,6 +37,12 @@
 #include CMSIS_device_header /* Gives us IRQ num, base addresses. */
 #include "BoardInit.hpp"      /* Board initialisation */
 #include "log_macros.h"      /* Logging macros (optional) */
+#include "board.h"
+#include "app_map.h"
+#include "global_map.h"
+#include "Driver_GPIO.h"
+#include "pinconf.h"
+
 
 namespace arm {
 namespace app {
@@ -55,10 +61,48 @@ namespace app {
 __asm("  .global __ARM_use_no_argv\n");
 #endif
 
+#define _GET_DRIVER_REF(ref, peri, chan) \
+    extern ARM_DRIVER_##peri Driver_##peri##chan; \
+    static ARM_DRIVER_##peri * ref = &Driver_##peri##chan;
+#define GET_DRIVER_REF(ref, peri, chan) _GET_DRIVER_REF(ref, peri, chan)
+
+// Prepare GPIO5 driver
+GET_DRIVER_REF(BOARD_GPIO_5_DRV, GPIO, PORT_5);
+
+
+/**
+ * @brief Initializes the GPIO pins.
+ *
+ * This function sets up the necessary GPIO pins for the application.
+ * It configures the pins as input or output as required.
+ */
+void initialize_gpio_pins() {
+    uint32_t config_gpio =
+        PADCTRL_READ_ENABLE |
+        PADCTRL_SCHMITT_TRIGGER_ENABLE |
+        PADCTRL_OUTPUT_DRIVE_STRENGTH_4MA;
+
+    // GPIO5 pin 6 constant high for logic analyzer ref
+    BOARD_GPIO_5_DRV->Initialize(PIN_6, NULL);
+    BOARD_GPIO_5_DRV->PowerControl(PIN_6, ARM_POWER_FULL);
+    BOARD_GPIO_5_DRV->SetDirection(PIN_6, GPIO_PIN_DIRECTION_OUTPUT);
+    BOARD_GPIO_5_DRV->SetValue(PIN_6, GPIO_PIN_OUTPUT_STATE_HIGH);
+    pinconf_set(PORT_5, PIN_6, PINMUX_ALTERNATE_FUNCTION_0, config_gpio);
+
+    // GPIO5 pin 4 high during UUT
+    BOARD_GPIO_5_DRV->Initialize(PIN_4, NULL);
+    BOARD_GPIO_5_DRV->PowerControl(PIN_4, ARM_POWER_FULL);
+    BOARD_GPIO_5_DRV->SetDirection(PIN_4, GPIO_PIN_DIRECTION_OUTPUT);
+    BOARD_GPIO_5_DRV->SetValue(PIN_4, GPIO_PIN_OUTPUT_STATE_LOW);
+    pinconf_set(PORT_5, PIN_4, PINMUX_ALTERNATE_FUNCTION_0, config_gpio);
+}
+
 int main()
 {
     /* Initialise the UART module to allow printf related functions (if using retarget) */
     BoardInit();
+    initialize_gpio_pins();
+    info("OKOK");
 
     /* Model object creation and initialisation. */
     arm::app::YoloFastestModel model;
@@ -120,11 +164,12 @@ int main()
 
     /* Run inference over this image. */
     info("Running inference on image %" PRIu32 " => %s\n", 0, get_filename(0));
-
+    BOARD_GPIO_5_DRV->SetValue(PIN_4, GPIO_PIN_OUTPUT_STATE_HIGH);
     if (!model.RunInference()) {
         printf_err("Inference failed.");
         return 2;
     }
+    BOARD_GPIO_5_DRV->SetValue(PIN_4, GPIO_PIN_OUTPUT_STATE_LOW);
 
     if (!postProcess.DoPostProcess()) {
         printf_err("Post-processing failed.");

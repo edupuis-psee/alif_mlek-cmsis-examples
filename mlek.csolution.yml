@@ -93,6 +93,7 @@ solution:
     - project: ./object-detection/object-detection.cproject.yml
       for-context:
         - +Alif-E7-M55-HP
+        - +Alif-E7-M55-HE
     - project: ./kws/kws.cproject.yml
       for-context:
         - +Alif-E7-M55-HE

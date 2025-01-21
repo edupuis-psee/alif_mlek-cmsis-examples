@@ -25,8 +25,11 @@ project:
   groups:
     - group: Use Case
       files:
+        - file: include/InputFiles.hpp
+        - file: src/InputFiles.cpp
+        - file: src/sample_image.cpp
         - file: src/yolo-fastest_192_face_v4_vela_H256.tflite.cpp
-        - file: src/main_live.cpp
+        - file: src/main_static.cpp
           for-context:
             - +Alif-E7-M55-HP
 
@@ -47,6 +50,7 @@ project:
     - layer: ../device/alif-ensemble/alif-ensemble-E7-device.clayer.yml
       for-context:
         - +Alif-E7-M55-HP
+        - +Alif-E7-M55-HE
 
   components:
     - component: ARM::ML Eval Kit:Vision:Object detection
