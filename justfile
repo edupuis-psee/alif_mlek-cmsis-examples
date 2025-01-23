@@ -30,3 +30,18 @@ flash context flags='': (prepare context flags)
     rm ./build/images/alif-img.bin
     rm ./alif-img.json
     popd
+
+flash_ext serial_port bin_to_flash:
+    #!/bin/bash
+    set -euox pipefail
+    echo "Flashing device"
+    pushd /home/edupuis/app-release-exec-linux
+    ./app-gen-toc -f build/config/alif_usb-to-ospi-flasher.json
+    ./app-write-mram -p
+    popd
+    echo "Wait for device to be ready (15s)"
+    sleep 15
+    echo "Sending file over xmodem"
+    stty -F {{ serial_port }} 115200 cs8 -parenb -cstopb -ixoff
+    stty -F {{ serial_port }}
+    sx -vv {{ bin_to_flash }} < {{ serial_port }} > {{ serial_port }}
