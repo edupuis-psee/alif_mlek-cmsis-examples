@@ -20,7 +20,20 @@ project:
   output:
     type:
       - elf
-      - bin
+
+  executes:
+    - execute: elf-to-bin-mram
+      run: arm-none-eabi-objcopy -O binary --remove-section *.at_ext_flash $input$ $output$
+      input:
+        - $elf()$
+      output:
+        - $OutDir()$/$Project$.bin
+    - execute: elf-to-bin-extflash
+      run: arm-none-eabi-objcopy -O binary --only-section *.at_ext_flash $input$ $output$
+      input:
+        - $elf()$
+      output:
+        - $OutDir()$/$Project$.extflash.bin
 
   groups:
     - group: Use Case
@@ -30,10 +43,10 @@ project:
         - file: include/MicroMutableAllOpsResolver.hpp
         - file: src/InputFiles.cpp
         - file: src/sample_image.cpp
-        - file: src/yolo-fastest_192_face_v4_vela_H256.tflite.cpp
         - file: src/main_static.cpp
         - file: src/TestModel.cpp
         - file: src/MicroMutableAllOpsResolver.cpp
+        - file: models/tinyissimo-v8_full_integer_quant_128_vela_H256.tflite.cc
           for-context:
             - +Alif-E7-M55-HP
             - +Alif-E7-M55-HE
@@ -53,8 +66,8 @@ project:
       for-compiler: GCC
 
   define:
-    - ACTIVATION_BUF_SZ: 532480
-    #- MODEL_IN_EXT_FLASH
+    # - ACTIVATION_BUF_SZ: 0x00200000
+    - MODEL_IN_EXT_FLASH
 
   layers:
     - layer: ../common/common.clayer.yml

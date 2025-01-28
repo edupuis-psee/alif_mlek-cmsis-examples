@@ -31,6 +31,18 @@ flash context flags='': (prepare context flags)
     rm ./alif-img.json
     popd
 
+prepare_flash_custom bin:
+    #!/bin/bash
+    set -euox pipefail
+    cp {{ bin }} /home/edupuis/app-release-exec-linux/build/images/alif-img.bin
+    cp /work/dev/alif_ml-embedded-evaluation-kit/alif_hp.json /home/edupuis/app-release-exec-linux/alif-img.json
+    pushd /home/edupuis/app-release-exec-linux
+    ./app-gen-toc -f alif-img.json
+    ./app-write-mram -p
+    rm ./build/images/alif-img.bin
+    rm ./alif-img.json
+    popd
+
 flash_ext serial_port bin_to_flash:
     #!/bin/bash
     set -euox pipefail
